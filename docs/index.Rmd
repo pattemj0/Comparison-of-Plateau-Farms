@@ -1,0 +1,742 @@
+---
+title: "Cove Creek Farm"
+author: "Max Patterson"
+date: "`r Sys.Date()`"
+output: 
+  flexdashboard::flex_dashboard:
+    storyboard: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(flexdashboard)
+library(ggpubr)
+```
+
+
+# Why?
+
+## <font size = "9em">**Why?**</font>
+
+### <font size = "9em">**Why?**</font>
+
+The world today faces a great threat of climate change and biodiversity loss. Our society today has unsustainable production and consumption pathways which results in largescale environmental degredation as well as countless injustices. Conventional agriculture is particularly damaging as it leads to large amounts of waste, long supply chains, and environmental degredation and biodiversity loss. In response to this, the UN has gathered and created a list of goals to move the world towards one that is more sustainable. Goal number 12 aims to create responsible consumption and production pathways while goal number 15 aims to improve life on land. In this data story I will show how these two goals can be achieved in a local context small farms on the Cumberland Plateau in Tennessee. In this context regenerative agricultural practices such as rotational grazing and the use of chickens was associated with soil improvement as well as increased plant species richness. This shows that regenerative practices in agriculture can help achieve more sustainable consumption and production patterns as well as improve life on land.
+
+![](../../SDG 12 small.png)
+![](../../SDG 15 small.png)
+
+
+# Methods
+
+## Top Left
+
+### <font size = "9em">**Methods**</font>
+
+In each plot:
+
+ - We sampled for soil organic carbon at two depths (0-15 & 15-30 cm; n=9 samples per plot)
+ 
+ - We sampled aggregate stability (0-5 cm; n=5). Three soil aggregates would be removed and air dried for at least 24 hours. These aggregates would then be submerged under water and the Slakes app would be used to assess aggregate stability. These samples were later sent to a lab to analyse soil nutrients
+ 
+ - We Counted the number of plant species observed in a 0.5 x 0.5m sampling frame 
+ (n=4) to examine species richness  
+
+### <font size = "3em">**Collecting a soil sample for aggregate stability**</font>
+
+![](../../agstabf.png){width="15%"}
+
+##
+### <font size = "3em">**Measuring Aggregate Stability in the lab**</font>
+
+![](../../IMG_6784 2.png){width="15%"}
+
+### <font size = "3em">**Example of plant spcies richness in a pasture**</font>
+
+![](../../sprich.png)
+
+
+
+# Cove Creek Farm
+
+## Left Column `{Data-width = 2000}`
+
+### <font size="9em">**Cove Creek Farm**</font>
+
+![](../../ccmap.png){width = 2%}
+
+```{r, include = FALSE}
+library(leaflet)
+
+ccmap <- data.frame(lng = -85.85697, -85.85674, -85.85629, -85.85586, 
+                                   lat = 35.233705, 35.23426, 35.23457, 35.23484)
+
+leaflet() %>% 
+  addTiles() %>% 
+  addCircleMarkers(data=ccmap,
+                   color="red",
+                   radius = 30)
+```
+
+
+### <font size="3em">**Management of each plot**</font> 
+
+Plots  1 - 4: Rotational grazing plus chicken tractors
+
+
+Row {.tabset .tabset-fade}
+--------------------------------------------------------------------------------
+
+### <font size="3em">**Aggregate Stability**</font>
+<font size="6em">**Aggregate Stability**</font>
+
+**y scale does not start at 0**
+```{r}
+cove_creek_as <- read.csv('../../Cove Creek - Ag stab.csv')
+
+ggplot(cove_creek_as,
+       aes(
+         x = factor(Plot.P),
+         y = Agg_Stb
+       )) + 
+  geom_boxplot(fill = "skyblue") +
+  geom_point() +
+  labs(x = "Plot",
+       y = "Aggregate Stability") 
+```
+
+### <font size="3em">**Soil Organic Carbon**</font>
+<font size="6em">**Soil Organic Carbon (%)**</font>
+```{r}
+
+cove_creek15 <- read.csv('../../Cove Creek - SOC 0-15.csv')
+
+cc_soc_15 <- 
+  ggplot(cove_creek15,
+       aes(x = factor(PLOT.P), y = Org_CPct, fill = PLOT.P)) + 
+  geom_boxplot(fill = "skyblue") + 
+  theme(legend.position = "none") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 0-15cm",
+       x = "Plot",
+       y = "Soil Organic Carbon (%)")
+```
+```{r}
+cove_creek30 <- read.csv('../../Cove Creek R - SOC 15-30.csv')
+
+
+cc_soc_30 <- 
+  ggplot(cove_creek30,
+       aes(x = factor(plot), y = X, fill = plot)) + 
+  geom_boxplot(fill = "skyblue") + 
+  theme(legend.position = "none") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 15-30cm",
+       x = "Plot",
+       y = "Soil Organic Carbon (%)")
+```
+```{r}
+ggpubr::ggarrange(cc_soc_15 ,cc_soc_30 ,nrow=1, labels = 'auto')
+```
+
+### <font size="3em">**Species Richness**</font>
+<font size="6em">**Plant Species Richness**</font>
+
+**y scale does not start at 0**
+```{r}
+cove_creeksr <- read.csv('../../Cove Creek - sp_rich.csv')
+
+ggplot(
+  cove_creeksr,aes(
+    x = factor(Plot_ID),
+    y = Richness
+  )
+) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(
+    x = "Plot",
+    y = "species richness"
+  )
+  
+```
+
+### <font size="3em">**Nitrogen**</font>
+<font size="6em">**Nitrogen**</font>
+
+**y scale does not start at 0**
+```{r}
+uga_nutri <- read.csv('../../UGA_2024 0-5 cm farm soil analyses_1.xlsx - With farms.csv') %>% 
+  mutate(`C/N` = C/N) %>% mutate(`C/P` = C/P)
+
+
+cove_creek_nutri <- uga_nutri %>% filter(Farm %in% ("Cove Creek"))
+
+ggplot(cove_creek_nutri,
+       aes(
+         x = factor(Plot),
+         y = N
+       )) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot",
+       y = "N (ppm)")
+```
+
+### <font size="3em">**Phosphorus**</font>
+<font size="6em">**Phosphorus**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cove_creek_nutri,aes(
+  x = factor(Plot),
+  y = P
+)) + 
+  geom_boxplot(fill="skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot",
+       y = "P (ppm)")
+```
+
+### <font size="3em">**C/N ratios**</font>
+<font size="6em">**C/N ratios**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cove_creek_nutri,aes(
+  x = factor(Plot),
+  y = C/N
+)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot", 
+       y = "C/N ratio")
+```
+
+### <font size="3em">**C/P ratios**</font>
+<font size="6em">**C/P ratios**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cove_creek_nutri,aes(
+  x = factor(Plot),
+  y = C/P
+)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot", 
+       y = "C/P ratio")
+```
+
+
+
+# Cheston Farm
+
+## Left Column `{Data-width = 2000}`
+
+### <font size="9em">**Cheston Farm**</font>
+
+![](../../chestonmap.png){width = 2%}
+
+```{r, include = FALSE}
+library(leaflet)
+
+ccmap <- data.frame(lng = -85.85697, -85.85674, -85.85629, -85.85586, 
+                                   lat = 35.233705, 35.23426, 35.23457, 35.23484)
+
+leaflet() %>% 
+  addTiles() %>% 
+  addCircleMarkers(data=ccmap,
+                   color="red",
+                   radius = 30)
+```
+
+### <font size="3em">**Management of each plot**</font> 
+
+Plot 1: Feeding area, heavily grazed
+
+Plot 2: Broomsedge
+
+Plot 3: Area under tree providing shade for cattle, heavily grazed
+
+Plot 4: Broomsedge
+
+Row {.tabset .tabset-fade}
+--------------------------------------------------------------------------------
+
+### <font size="3em">**Aggregate Stability**</font>
+<font size="6em">**Aggregate Stability**</font>
+
+**y scale does not start at 0**
+```{r}
+cheston_as <- read.csv('../../Cheston R - Ag stab copy.csv')
+
+ggplot(cheston_as,
+       aes(
+         x = factor(Plot_ID),
+         y = Agg_Stb
+       )) + 
+  geom_boxplot(fill = "skyblue") +
+  geom_point() +
+  labs(x = "Plot",
+       y = "Aggregate Stability") 
+```
+
+### <font size="3em">**Soil Organic Carbon**</font>
+<font size="6em">**Soil Organic Carbon (%)**</font>
+
+
+```{r}
+
+cheston_15 <- read.csv('../../Cheston R - SOC 0-15 copy.csv')
+
+cheston_soc_15 <- 
+  ggplot(cheston_15,
+       aes(x = factor(Plot_ID), y = Org_CPct, fill = Plot_ID)) + 
+  geom_boxplot(fill = "skyblue") + 
+  theme(legend.position = "none") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 0-15cm",
+       x = "Plot",
+       y = "Soil Organic Carbon (%)")
+```
+```{r}
+cheston_30 <- read.csv('../../Cheston R - SOC 15-30.csv')
+
+
+cheston_soc_30 <- 
+  ggplot(cheston_30,
+       aes(x = factor(Plot_ID), y = Org_CPct)) + 
+  geom_boxplot(fill = "skyblue") + 
+  theme(legend.position = "none") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 15-30cm",
+       x = "Plot",
+       y = "Soil Organic Carbon (%)")
+```
+```{r}
+ggpubr::ggarrange(cheston_soc_15 ,cheston_soc_30 ,nrow=1, labels = 'auto')
+```
+
+### <font size="3em">**Species Richness**</font>
+<font size="6em">**Plant Species Richness**</font>
+
+**y scale does not start at 0**
+
+```{r}
+chestonsr <- read.csv('../../Cheston_R_sp_rich copy.csv')
+
+ggplot(
+  chestonsr,aes(
+    x = factor(Plot_ID),
+    y = Richness
+  )
+) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(
+    x = "Plot",
+    y = "species richness"
+  )
+  
+```
+
+
+### <font size="3em">**Nitrogen**</font>
+<font size="6em">**Nitrogen**</font>
+
+**y scale does not start at 0**
+```{r}
+
+cheston_nutri <- uga_nutri %>% filter(Farm %in% ("Cheston"))
+
+ggplot(cheston_nutri,
+       aes(
+         x = factor(Plot),
+         y = N
+       )) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot",
+       y = "N (ppm)")
+```
+
+### <font size="3em">**Phosphorus**</font>
+<font size="6em">**Phosphorus**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cheston_nutri,aes(
+  x = factor(Plot),
+  y = P
+)) + 
+  geom_boxplot(fill="skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot",
+       y = "P (ppm)")
+```
+
+### <font size="3em">**C/N ratios**</font>
+<font size="6em">**C/N ratios**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cheston_nutri,aes(
+  x = factor(Plot),
+  y = C/N
+)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot", 
+       y = "C/N ratio")
+```
+
+### <font size="3em">**C/P ratios**</font>
+<font size="6em">**C/P ratios**</font>
+
+**y scale does not start at 0**
+```{r}
+ggplot(cheston_nutri,aes(
+  x = factor(Plot),
+  y = C/P
+)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_jitter(width = 0.1) + 
+  labs(x = "Plot", 
+       y = "C/P ratio")
+```
+
+# Plateau Farm Comparison
+
+##
+
+### <font size="9em">**Plateau Farm Comparison**</font>
+
+We compared the soil and species richness of three farms on the plateau.
+
+Each of these farms has sandy nutrient poor soils with a low water holding capacity as shown below.
+
+### <font size="3em">**photo of soil on the Cumberland Plateau**</font>
+
+![](../../plateau_soil.png)
+
+Row {.tabset .tabset-fade}
+--------------------------------------------------------------------------------
+
+### <font size="3em">**Aggregate Stability**</font>
+<font size="6em">**Aggregate Stability**</font>
+
+Cheston Farm has marginally higher aggregate stability than Cove Creek **p-value = 0.05072**.
+
+
+```{r}
+plateau_as <- read.csv('../../Plateau farms R - Ag stab.csv')
+
+cc_v_ch <-
+  plateau_as %>% filter(Farm_ID %in% c("Cove Creek", "Cheston"))
+
+
+ggplot(plateau_as, aes(
+  x = Farm_ID,
+  y = Agg_Stb
+)) + 
+  geom_boxplot(fill = "skyblue")+
+  geom_point() + 
+  labs(x = "Farm",
+       y = "Aggregate Stability")
+
+#t.test(Agg_Stb ~ Farm_ID, data = cc_v_ch)
+```
+
+
+### <font size="3em">**Soil Organic Carbon**</font>
+<font size="6em">**Soil Organic Carbon**</font>
+
+Cove Creek has higher SOC than Cheston Farm. **p-value = 1.251e-05**, **p-value = 4.119e-09**.
+```{r}
+plateau_15 <- read.csv('../../Plateau farms R - SOC 0-15.csv')
+plateau_30 <- read.csv('../../Plateau farms R - SOC 15-30.csv')
+
+cc_v_ch_15 <-
+  plateau_15 %>% filter(Farm_ID %in% c("Cove Creek", "Cheston"))
+cc_v_ch_30 <-
+  plateau_30 %>% filter(Farm_ID %in% c("Cove Creek", "Cheston"))
+
+#t.test(Org_CPct ~ Farm_ID, data = cc_v_ch_15)
+#t.test(Org_CPct ~ Farm_ID, data = cc_v_ch_30)
+
+plat15 <- 
+  ggplot(plateau_15,
+       aes(x = (Farm_ID), y = Org_CPct)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 0-15cm",
+       x = "Farm",
+       y = "Soil Organic Carbon (%)")
+
+plat30 <-
+  ggplot(plateau_30,
+       aes(x = (Farm_ID), y = Org_CPct)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 5) + 
+  labs(title = "Depth of 15-30cm",
+       x = "Farm",
+       y = "Soil Organic Carbon (%)")
+
+ggpubr::ggarrange(plat15 ,plat30 ,nrow=1, labels = 'auto')
+
+```
+
+### <font size="3em">**Species Richness**</font>
+<font size="6em">**Plant Species Richness**</font>
+
+Cove Creek has higher species Richness than Cheston **p-value = 0.005054**.
+```{r}
+plateau_sr <- read.csv('../../Plateau farms R - sp rich.csv')
+
+cc_v_ch_sr <-
+  plateau_sr %>% filter(Farm_ID %in% c("Cove Creek", "Cheston"))
+
+#t.test(Richness ~ Farm_ID, data = cc_v_ch_sr)
+
+ggplot(plateau_sr,
+       aes(
+         x = Farm_ID,
+         y = Richness
+       )) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point()+
+  labs(x = "Farm",
+       y = "Species Richness")
+```
+
+
+### <font size="3em">**Nitrogen**</font>
+<font size="6em">**Nitrogen**</font>
+
+Cove Creek has more soil Nitrogen than Cheston **p-value = 0.02616**.
+```{r}
+plateau_nutri <- uga_nutri %>% filter(Farm %in% c("Cheston", "Cove Creek", "Lost Cove"))
+
+cc_v_ch_nutri <-
+  plateau_nutri %>% filter(Farm %in% c("Cove Creek", "Cheston"))
+
+#t.test(N ~ Farm, data = cc_v_ch_nutri)
+#t.test(P ~ Farm, data = cc_v_ch_nutri)
+#t.test(C/N ~ Farm, data = cc_v_ch_nutri)
+#t.test(C/P ~ Farm, data = cc_v_ch_nutri)
+
+
+ggplot(plateau_nutri,
+       aes(x = Farm,
+           y = N))+ 
+  geom_boxplot(fill = "skyblue")+
+  geom_jitter(width = 0.1) + 
+  labs(x = "Farm",
+       y = "N (ppm)")
+```
+
+### <font size="3em">**Phosphorus**</font>
+<font size="6em">**Phosphorus**</font>
+
+Cove Creek has more soil Phosphorus than Cheston **p-value = 4.478e-09**.
+```{r}
+ggplot(plateau_nutri,
+       aes(x = Farm,
+           y = P))+ 
+  geom_boxplot(fill = "skyblue")+
+  geom_jitter(width = 0.1) + 
+  ylim(min = 0, max = 150) +
+  labs(x = "Farm",
+       y = "P (ppm)")
+```
+
+### <font size="3em">**C/N ratios**</font>
+<font size="6em">**C/N ratios**</font>
+
+No difference in C/N ratio between Cove Creek & Cheston **p-value = 0.7384**.
+```{r}
+ggplot(plateau_nutri,
+       aes(x = Farm,
+           y = C/N))+ 
+  geom_boxplot(fill = "skyblue")+
+  geom_jitter(width = 0.1) + 
+  labs(x = "Farm",
+       y = "C/N ratio")
+```
+
+### <font size="3em">**C/P ratios**</font>
+<font size="6em">**C/P ratios**</font>
+
+Cove Creek has a lower C/P ratio than Cheston **p-value = 2.34e-06**.
+```{r, warning=FALSE}
+ggplot(plateau_nutri,
+       aes(x = Farm,
+           y = C/P))+ 
+  geom_boxplot(fill = "skyblue")+
+  geom_jitter(width = 0.1) + 
+  labs(x = "Farm",
+       y = "C/P ratio")
+```
+
+# Chickens
+
+##
+
+### <font size="6em">**Effect of chicken tractors on the land**</font>
+We compared soil properties and plant species richness of plots where chicken tractors were part of management with areas where they were absent. Chicken tractors are a common management technique used in regenerative agriculture where chickens are fed grain inside a portable shed. This shed protects them from predators while also confining their movement. It is moved regularly to spread the impact of the chickens.
+
+### <font size="3em">**A Chicken tractor at Cove Creek Farm**</font>
+![](../../Chickentractor.png)
+
+
+Row {.tabset .tabset-fade}
+--------------------------------------------------------------------------------
+
+### <font size="3em">**Aggregate Stability**</font>
+<font size="6em">**Aggregate Stability**</font>
+
+No difference in Aggregate stability **p-value = 0.01559**.
+```{r, warning=FALSE}
+ggplot(plateau_as,
+       aes(x = chickens,
+           y = Agg_Stb)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  labs(x = "Presence of chickens",
+       y = "Aggregate Stability")
+
+#t.test(Agg_Stb ~ chickens, data = plateau_as)
+```
+
+### <font size="3em">**Soil Organic Carbon**</font>
+<font size="6em">**Soil Organic Carbon (%)**</font>
+
+Plots with chickens have higher SOC **p-value = 3.278e-09** **p-value = 6.286e-10**.
+
+```{r, echo = FALSE, warning=FALSE}
+chickens15 <- 
+  ggplot(plateau_15,aes(x = chickens,
+                      y = Org_CPct)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 5)
+  labs(title = "Depth of 0-15cm",
+       x = "Presence of chickens",
+       y = "Aggregate Stability")
+
+chickens30 <- 
+  ggplot(plateau_30,aes(x = chickens,
+                      y = Org_CPct)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 5)
+  labs(title = "Depth of 15-30cm",
+       x = "Presence of chickens",
+       y = "Aggregate Stability")
+
+  ggpubr::ggarrange(chickens15 ,chickens30 ,nrow=1, labels = 'auto')  
+  
+#t.test(Org_CPct ~ chickens, data = plateau_15)
+#t.test(Org_CPct ~ chickens, data = plateau_30)
+```
+
+### <font size="3em">**Species Richness**</font>
+<font size="6em">**Plant Species Richness**</font>
+
+Plots with chickens had higher species richness than plots without them **p-value = 0.009574**.
+
+```{r, echo = FALSE, warning=FALSE}
+ggplot(plateau_sr,aes(x = chickens,
+                      y = Richness)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 20) + 
+  labs(x = "Presence of chickens",
+       y = "Species Richness")
+  
+  t.test(Richness ~ chickens, data = plateau_sr)
+
+```
+
+
+### <font size="3em">**Nitrogen**</font>
+<font size="6em">**Soil Nitrogen Content**</font>
+
+Plots with chickens have higher soil N **p-value = 0.002851**.
+```{r, echo = FALSE, warning=FALSE}
+chickens_nutri <- read.csv('../../M UGA chickens.csv') %>% filter(Farm %in% c("Cheston", "Cove Creek", "Lost Cove")) %>% mutate(`C/N` = C/N) %>% mutate(`C/P` = C/P)
+
+ggplot(chickens_nutri,aes(x = chickens,
+                      y = N)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 1) + 
+  labs(x = "Presence of chickens",
+       y = "N (ppm)")
+  
+  #t.test(N ~ chickens, data = chickens_nutri)
+```
+
+
+### <font size="3em">**Phosphorus**</font>
+<font size="6em">**Soil Phosphorus Content**</font>
+
+Plots with chickens have higher soil P **p-value = 0.0001149**.
+```{r, echo=FALSE, warning=FALSE}
+
+ggplot(chickens_nutri,aes(x = chickens,
+                      y = P)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  ylim(min = 0, max = 125) + 
+  labs(x = "Presence of chickens",
+       y = "P (ppm)")
+  
+  #t.test(P ~ chickens, data = chickens_nutri)
+```
+
+
+### <font size="3em">**C/N**</font>
+<font size="6em">**C/N ratio**</font>
+
+Chickens had no effect on soil C/N ratio **p-value = 0.1861**.
+```{r, echo=FALSE, warning=FALSE}
+ggplot(chickens_nutri,aes(x = chickens,
+                      y = C/N)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  labs(x = "Presence of chickens",
+       y = "C/N")
+  
+t.test(C/N ~ chickens, data = chickens_nutri)
+```
+
+### <font size="3em">**C/P**</font>
+<font size="6em">**C/P ratio**</font>
+
+Plots with chickens had significantly higher soil C/P ratio **p-value = 7.463e-05**.
+```{r, echo=FALSE, warning=FALSE}
+ggplot(chickens_nutri,aes(x = chickens,
+                      y = C/P)) + 
+  geom_boxplot(fill = "skyblue") + 
+  geom_point() + 
+  labs(x = "Presence of chickens",
+       y = "C/P")
+  
+t.test(C/P ~ chickens, data = chickens_nutri)
+```
+
+# Conclusion
+
+### <font size="9em">**Conclusion**</font>
+
+Areas where chickens were used, notably Cove Creek Farm, had higher soil organic carbon, plant species richness, soil nitrogen, & soil phosphorus than areas where chickens were not part of the management. The soil properties listed are linked to improved water holding capacity, nutrient availability, and plant growth. These results may a result of the grain used to feed the chickens which acts as a nutrient input into the system. Nontheless, if managed properly, chickens appear to have a positive impact on ecosystem services as well as the diversity of life. As a result the actions of these farmers appear increase life on land while also ensuring sustainable consumption and production.
